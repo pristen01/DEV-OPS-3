@@ -1,0 +1,42 @@
+version: '3'
+
+networks:
+    my-network:
+        driver: bridge
+
+services:
+    app:
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        ports:
+            - 8080:80
+        image: example-app
+        container_name: example-app
+        restart: unless-stopped
+        working_dir: /var/www/html
+        volumes:
+            - ./:/var/www/html
+        networks:
+            - my-network
+
+    mysqlserver:
+        image: mysql:latest
+        environment:
+            MYSQL_ROOT_PASSWORD: pristen
+            MYSQL_DATABASE: foobar
+        ports:
+            - 3306:3306
+        networks:
+            - my-network
+
+    pma:
+        depends_on:
+            - mysqlserver
+        build: ./database
+        ports:
+            - 8081:80
+        environment:
+            PMA_HOST: mysqlserver
+        networks:
+            - my-network
